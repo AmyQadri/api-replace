@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contoh Vue.js</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Import Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <!-- Import SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div id="app" class="container mt-5">
+        <h1 class="mb-4">Generate Teks dari Template</h1>
+        <form @submit.prevent="generateLink">
+            <div class="mb-3">
+                <label for="nama" class="form-label">Nama</label>
+                <textarea class="form-control" id="nama" v-model="nama" rows="4" required></textarea>
+            </div>
+            <ul class="nav nav-tabs mb-3" id="templateTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="islam-tab" data-bs-toggle="tab" data-bs-target="#islam" type="button" role="tab" aria-controls="islam" aria-selected="true" @click="selectedTemplate='islam'">Islam</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="kristen-tab" data-bs-toggle="tab" data-bs-target="#kristen" type="button" role="tab" aria-controls="kristen" aria-selected="false" @click="selectedTemplate='kristen'">Kristen</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="hindu-tab" data-bs-toggle="tab" data-bs-target="#hindu" type="button" role="tab" aria-controls="hindu" aria-selected="false" @click="selectedTemplate='hindu'">Hindu</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="budha-tab" data-bs-toggle="tab" data-bs-target="#budha" type="button" role="tab" aria-controls="budha" aria-selected="false" @click="selectedTemplate='budha'">Buddha</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="templateTabContent">
+                <div class="tab-pane fade show active" id="islam" role="tabpanel" aria-labelledby="islam-tab">
+                    <textarea class="form-control" v-model="templates.islam" rows="10" required></textarea>
+                </div>
+                <div class="tab-pane fade" id="kristen" role="tabpanel" aria-labelledby="kristen-tab">
+                    <textarea class="form-control" v-model="templates.kristen" rows="10" required></textarea>
+                </div>
+                <div class="tab-pane fade" id="hindu" role="tabpanel" aria-labelledby="hindu-tab">
+                    <textarea class="form-control" v-model="templates.hindu" rows="10" required></textarea>
+                </div>
+                <div class="tab-pane fade" id="budha" role="tabpanel" aria-labelledby="budha-tab">
+                    <textarea class="form-control" v-model="templates.budha" rows="10" required></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Buat Link Sebar</button>
+        </form>
+        <div class="mt-4">
+            <h5>Hasil:</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(result, index) in results" :key="index">
+                        <td>{{ index + 1 }}</td>
+                        <td>{{ result.nama }}</td>
+                        <td>
+                            <button class="btn btn-secondary" @click="copyText(result.teks)">Salin Text</button>
+                            <button class="btn btn-success" @click="sendMessage(result.teks)">Kirim WA</button>
+                            <button class="btn btn-info" @click="postToFacebook(result.teks)">Post ke FB</button>
+                            <button class="btn btn-light" @click="copyLink(result.linkUndangan)">Salin Link</button>
+                            <button class="btn btn-danger" @click="deleteRow(index)">Hapus</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Membuat instance Vue
+        new Vue({
+            el: '#app',
+            data: {
+                nama: '', // variabel nama
+                laki_laki: 'Ahmad',
+                perempuan: 'Aisyah',
+                baseLink: 'https://mqdigitaldesign.com/ahmad&aisyah',
+                selectedTemplate: 'islam', // template yang dipilih
+                templates: {
+                    islam: 'Assalamu\'alaikum Warahmatullahi Wabarakatuh,\n\nDengan memohon rahmat dan ridho Allah SWT, kami mengundang Bapak/Ibu/Saudara/i *[Nama]* untuk menghadiri acara pernikahan putra/putri kami:\n\n*[Nama Laki-laki]* & *[Nama Perempuan]*\n\nBerikut adalah link undangan kami: *[Link Undangan]*\n\nMerupakan kehormatan dan kebahagiaan bagi kami atas kehadiran dan doa restu Bapak/Ibu/Saudara/i.\n\nWassalamu\'alaikum Warahmatullahi Wabarakatuh.', // template Islam
+                    kristen: 'Salam sejahtera dalam kasih Tuhan,\n\nDengan penuh sukacita, kami mengundang Bapak/Ibu/Saudara/i *[Nama]* untuk menghadiri pernikahan kami:\n\n*[Nama Laki-laki]* & *[Nama Perempuan]*\n\nBerikut adalah link undangan kami: *[Link Undangan]*\n\nKami berharap kehadiran dan doa restu dari Bapak/Ibu/Saudara/i akan menambah kebahagiaan kami pada hari istimewa ini.\n\nTuhan memberkati.', // template Kristen
+                    hindu: 'Om Swastiastu,\n\nDengan penuh kebahagiaan, kami mengundang Bapak/Ibu/Saudara/i *[Nama]* untuk menghadiri upacara pernikahan kami:\n\n*[Nama Laki-laki]* & *[Nama Perempuan]*\n\nBerikut adalah link undangan kami: *[Link Undangan]*\n\nMerupakan kehormatan bagi kami atas kehadiran dan doa restu Bapak/Ibu/Saudara/i dalam menyambut hari bahagia kami.\n\nOm Shanti Shanti Shanti Om.', // template Hindu
+                    budha: 'Namo Buddhaya,\n\nDengan penuh sukacita, kami mengundang Bapak/Ibu/Saudara/i *[Nama]* untuk menghadiri acara pernikahan kami:\n\n*[Nama Laki-laki]* & *[Nama Perempuan]*\n\nBerikut adalah link undangan kami: *[Link Undangan]*\n\nKehadiran dan doa restu dari Bapak/Ibu/Saudara/i sangat berarti bagi kami dalam menyambut hari bahagia ini.\n\nTerima kasih.' // template Buddha
+                },
+                results: [], // array untuk menyimpan hasil
+            },
+            methods: {
+                generateLink() {
+                    // Split nama by new lines
+                    const listNama = this.nama.split('\n');
+                    const template = this.templates[this.selectedTemplate];
+                    this.results = listNama.map(nama => {
+                        // Capitalize each word in nama
+                        const capitalizedNama = nama.split(' ').map(word => {
+                            return word.charAt(0).toUpperCase() + word.slice(1);
+                        }).join(' ');
+
+                        // Generate the invitation link with the name as a query parameter
+                        const encodedNama = encodeURIComponent(capitalizedNama);
+                        const linkUndangan = `${this.baseLink}?kepada=${encodedNama}`;
+
+                        // Replace placeholders in template
+                        const teks = template
+                            .replace('*[Nama]*', capitalizedNama)
+                            .replace('*[Nama Laki-laki]*', this.laki_laki)
+                            .replace('*[Nama Perempuan]*', this.perempuan)
+                            .replace('*[Link Undangan]*', linkUndangan);
+
+                        return { nama: capitalizedNama, teks: teks, linkUndangan: linkUndangan };
+                    });
+                },
+                copyText(teks) {
+                    // Salin teks ke clipboard
+                    navigator.clipboard.writeText(teks).then(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Teks berhasil disalin!',
+                            timer: 1000,
+                            showConfirmButton: false
+                        });
+                    }).catch(err => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal menyalin teks',
+                            text: err.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    });
+                },
+                copyLink(link) {
+                    // Salin link undangan ke clipboard
+                    navigator.clipboard.writeText(link).then(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Link berhasil disalin!',
+                            timer: 1000,
+                            showConfirmButton: false
+                        });
+                    }).catch(err => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal menyalin link',
+                            text: err.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    });
+                },
+                sendMessage(teks) {
+                    // Mengirim teks melalui WhatsApp (contoh URL, sesuaikan dengan kebutuhan)
+                    const encodedTeks = encodeURIComponent(teks);
+                    const waLink = `https://wa.me/?text=${encodedTeks}`;
+                    window.open(waLink, '_blank');
+                },
+                postToFacebook(teks) {
+                    // Posting teks ke Facebook (contoh URL, sesuaikan dengan kebutuhan)
+                    const encodedTeks = encodeURIComponent(teks);
+                    const fbLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedTeks}`;
+                    window.open(fbLink, '_blank');
+                },
+                deleteRow(index) {
+                    // Hapus baris dari results
+                    this.results.splice(index, 1);
+                }
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
