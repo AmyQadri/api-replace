@@ -163,7 +163,7 @@
                     window.open(waLink, '_blank');
                 },
                 postToFacebook(teks) {
-                    // Posting teks ke Facebook (contoh URL, sesuaikan dengan kebutuhan)
+                    // Encode teks untuk menghindari masalah dengan karakter khusus
                     const encodedTeks = encodeURIComponent(teks);
                     const fbLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedTeks}`;
                     window.open(fbLink, '_blank');
